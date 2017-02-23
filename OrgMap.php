@@ -6,7 +6,7 @@ Version: 1.0
 Author: Alan Zard
 Author URI: https://level73.it
 Text Domain: orgmap
-License: MIT
+License: GPL 3.0
 */
 
 /** Create and register taxonomies **/
