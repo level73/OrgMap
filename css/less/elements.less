@@ -1,0 +1,43 @@
+ul.sdg-term-list {
+  list-style: none;
+  margin: 10px 0px;
+  padding: 0px;
+  li {
+    display: inline-block;
+    padding: 0px 5px;
+    &:not(:first-child) {
+      border-left: 1px solid #222;
+    }
+    &.sdg-icon-list {
+      margin: 5px;
+      padding: 0px;
+      border: none;
+    }
+  }
+}
+ul.sdg-icon-list {
+  list-style: none;
+  margin: 25px 0px;
+  padding: 0px;
+  li {
+    box-sizing: border-box;
+    display: block;
+    float: left;
+    position: relative;
+    padding: 5px 5px;
+    width: 16.6666%;
+    background: white !important;
+    &:before{
+    	content: "";
+    	display: block;
+    	padding-top: 100%;
+    }
+    a.sdg-icon {
+      width: calc(100% - 10px);
+      height: calc(100% - 10px);
+      position: absolute;
+      top: 5px; bottom: 5px; left: 5px; right: 5px;
+    }
+  }
+}
+.generate-sdg-term(17);

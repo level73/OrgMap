@@ -1,0 +1,19 @@
+.generate-sdg-term(@n, @i: 1) when (@i =< @n) {
+  @color: ~'@{i}sdg';
+
+  .sdg-term-@{i} {
+    color: @@color;
+    &.sdg-icon {
+      /** hide text on icon display **/
+      text-indent: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      display: block;
+      width: 80px;
+      height: 80px;
+      background: @@color url('../assets/images/SDG@{i}.png') no-repeat center center;
+      background-size: contain;
+    }
+  }
+  .generate-sdg-term(@n, (@i + 1));
+}

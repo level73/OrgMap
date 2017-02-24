@@ -1,0 +1,24 @@
+{
+  "name": "orgmap_plugin",
+  "version": "1.0.0",
+  "description": "Wordpress Plugin - a CPT and 2 custom taxonomies to manage organizations and display them on a filterable, sortable map based on pertinent SDG",
+  "main": "OrgMap.php",
+  "scripts": {
+    "test": "0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/level73/OrgMap.git"
+  },
+  "author": "Alan Zard",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/level73/OrgMap/issues"
+  },
+  "homepage": "https://github.com/level73/OrgMap#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-less": "^1.4.0",
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}
