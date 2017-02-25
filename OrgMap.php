@@ -340,19 +340,71 @@ add_shortcode('orgmap', 'orgmap_shortcode');
 function orgmap_shortcode(){
   // get all the_terms
   $sdgs = get_terms(array(
-    'taxonomy'  => 'sdgs',
+    'taxonomy'    => 'sdgs',
     'meta_key'    => 'sdg_order',
     'orderby'     => 'meta_value_num',
     'order'       => 'ASC',
     'hide_empty'  => false
   ));
+  // Get All Countries
+  $countries = get_terms(array(
+    'taxonomy'    => 'countries',
+    'meta_key'    => 'iso2',
+    'orderby'     => 'meta_value',
+    'order'       => 'ASC',
+    'hide_empty'  => false
+  ));
+  // Include the ISO2 code here, do it once instead of a million times
+  $countryList = array();
+  foreach($countries as $country){
+    $iso2 = strtoupper(get_term_meta($country->term_id, 'iso2', true));
+    $countryList[$iso2] = array(
+      'value' => 0,
+      'href'  => '/country/' . $country->slug
+    );
+  }
+  // I'm going to store my query objects in here once I sorted them out
+  $results = array();
+  // Cycle over Term to get related Orgs
+  foreach($sdgs as $sdg){
+    $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
+    // Set SDG Slug as Array Index for current iteration, add the list of Areas
+    $results[$sdg_order] = array('areas' => $countryList);
+    // set arguments for WP_Query
+    $args = array(
+      'post_type' => 'organization',
+      'tax_query' => array(
+        array(
+    			'taxonomy' => 'sdgs',
+    			'field' => 'id',
+    			'terms' => $sdg->term_id
+    		)
+      )
+    );
 
-  $orgmap_query = new WP_Query;
-
+    $orgs = new WP_Query($args);
+    $howManyOrgs = 0;
+    // Let's loop this
+    while( $orgs->have_posts() ) : $orgs->the_post();
+      $terms = get_the_terms(get_the_ID(), 'countries');
+      foreach($terms as $country){
+        $iso2 = strtoupper(get_term_meta($country->term_id, 'iso2', true));
+        $results[$sdg_order]['areas'][$iso2]['value']++;
+      }
+      $howManyOrgs++;
+    endwhile;
+    // clean up post data
+    wp_reset_postdata();
+  }
+  //print_r($results);
 ?>
-<div class="orgmap"><div class="map"></div></div>
+<div class="orgmap">
+  <div class="map"></div>
+  <div class="areaLegend"></div>
+</div>
 <div class="orgmap-sdg-list">
   <h3><?php echo __('Filter the Map by SDG', 'orgmap'); ?></h3>
+  <div class="areaLegend"></div>
   <ul class="sdg-icon-list">
   <?php
   if(!empty($sdgs) && !is_wp_error($sdgs)){
@@ -360,7 +412,7 @@ function orgmap_shortcode(){
       $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
   ?>
     <li>
-      <a href="#" class="sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-<?php echo $sdg_order; ?>"></a>
+      <a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-<?php echo $sdg_order; ?>" data-sdg="<?php echo $sdg_order; ?>"></a>
     </li>
   <?php
       }
@@ -368,7 +420,91 @@ function orgmap_shortcode(){
   ?>
   </ul>
 </div>
-<script src="<?php echo plugin_dir_url(__FILE__); ?>/js/maps/world_countries_miller.js"></script>
+<script src="<?php echo plugin_dir_url(__FILE__); ?>js/maps/world_countries_miller.js"></script>
+<script>
+jQuery(document).ready(function(){
+  /** Init Map **/
+  var theData =  <?php echo json_encode($results, JSON_FORCE_OBJECT); ?>;
+  jQuery('.orgmap-map-control').click(function(e){
+    e.preventDefault();
+    var sdg = jQuery(this).data('sdg');
+    jQuery('.orgmap-map-control').fadeTo(200, 0.4);
+    jQuery(this).fadeTo(200, 1);;
+
+    jQuery('.orgmap').trigger('update', [{
+      mapOptions: theData[sdg],
+      //replaceOptions: true,
+      animDuration: 300
+    }]);
+  });
+  jQuery('.orgmap').mapael({
+
+    map : {
+      name : "world_countries_miller",
+      defaultArea: {
+        attrs: {
+          fill: "#fff",
+          stroke: "#232323",
+          "stroke-width": 0.3
+        }
+      },
+      zoom: {
+        enabled: true,
+        step: 0.25,
+        maxLevel: 20
+      }
+    },
+    legend: {
+      area: {
+        display: false,
+
+        slices: [
+          {
+            max: 0,
+            max: 0,
+            attrs: {
+                fill: "#FFFFFF"
+            },
+            label: "1 Organization"
+          },
+          {
+              max: 1,
+              attrs: {
+                  fill: "#6ECBD4"
+              },
+              label: "1 Organization"
+          },
+          {
+              min: 1,
+              max: 10,
+              attrs: {
+                  fill: "#3EC7D4"
+              },
+              label: "Between 1 and 10 Organizations"
+          },
+          {
+              min: 10,
+              max: 50,
+              attrs: {
+                  fill: "#028E9B"
+              },
+              label: "Between 10 and 50 Organizations"
+          },
+          {
+              min: 50,
+              attrs: {
+                  fill: "#01565E"
+              },
+              label: "More than 50 Organizations"
+          }
+        ]
+      },
+    },
+
+    areas: theData["1"]["areas"]
+  });
+});
+</script>
 <?php
 
 
