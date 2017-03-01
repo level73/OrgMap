@@ -9,61 +9,8 @@ Text Domain: orgmap
 License: GPL 3.0
 */
 
-/** Create and register taxonomies **/
-function OrgMap_create_taxonomies() {
-
-  // Countries
-  $labels = array(
-		'name'              => _x( 'Countries', 'taxonomy general name', 'orgmap' ),
-		'singular_name'     => _x( 'Country', 'taxonomy singular name', 'orgmap' ),
-		'search_items'      => __( 'Search Countries', 'orgmap' ),
-		'all_items'         => __( 'All Countries', 'orgmap' ),
-		'edit_item'         => __( 'Edit Country', 'orgmap' ),
-		'update_item'       => __( 'Update Country', 'orgmap' ),
-		'add_new_item'      => __( 'Add New Country', 'orgmap' ),
-		'new_item_name'     => __( 'New Country Name', 'orgmap' ),
-		'menu_name'         => __( 'Country', 'orgmap' ),
-	);
-  $args = array(
-		'hierarchical'      => true,
-		'labels'            => $labels,
-		'show_ui'           => true,
-		'show_admin_column' => true,
-		'query_var'         => true,
-		'rewrite'           => array( 'slug' => 'country' ),
-	);
-  register_taxonomy(
-    'countries',
-    'organization',
-    $args
-  );
-
-  // SDG List
-  $labels = array(
-		'name'              => _x( 'SDGs', 'taxonomy general name', 'orgmap' ),
-		'singular_name'     => _x( 'SDG', 'taxonomy singular name', 'orgmap' ),
-		'search_items'      => __( 'Search SDGs', 'orgmap' ),
-		'all_items'         => __( 'All SDGs', 'orgmap' ),
-		'edit_item'         => __( 'Edit SDG', 'orgmap' ),
-		'update_item'       => __( 'Update SDG', 'orgmap' ),
-		'add_new_item'      => __( 'Add New SDG', 'orgmap' ),
-		'new_item_name'     => __( 'New SDG Name', 'orgmap' ),
-		'menu_name'         => __( 'SDG', 'orgmap' ),
-	);
-  $args = array(
-		'hierarchical'      => true,
-		'labels'            => $labels,
-		'show_ui'           => true,
-		'show_admin_column' => true,
-		'query_var'         => true,
-		'rewrite'           => array( 'slug' => 'sdg' ),
-	);
-  register_taxonomy(
-    'sdgs',
-    'organization',
-    $args
-  );
-}
+require_once(plugin_dir_path(__FILE__) . 'OrgMap.class.php');
+new OrgMapSetup();
 
 /** Add custom meta to taxonomies **/
 // ISO2 field for Countries
@@ -108,7 +55,6 @@ function add_iso2_column( $columns ){
     $columns['iso2'] = __( 'ISO2', 'orgmap' );
     return $columns;
 }
-
 add_filter('manage_countries_custom_column', 'add_iso2_column_content', 10, 3 );
 function add_iso2_column_content( $content, $column_name, $term_id ){
     if( $column_name !== 'iso2' ){
@@ -122,107 +68,10 @@ function add_iso2_column_content( $content, $column_name, $term_id ){
     return $content;
 }
 
-// Sorting Order field for SDGs
-add_action( 'sdgs_add_form_fields', 'add_sdg_order_field', 10, 2 );
-function add_sdg_order_field($taxonomy) {
-    $html = '<div class="form-field term-group">
-        <label for="sdg_order">SDG #</label>
-        <input type="text" class="post-form" id="sdg_order" name="sdg_order">
-    </div>';
-    echo $html;
-}
-// Save SDG Order field
-add_action( 'created_sdgs', 'save_sdg_order_meta', 10, 2 );
-function save_sdg_order_meta( $term_id, $tt_id ){
-    if( isset( $_POST['sdg_order'] ) && '' !== $_POST['sdg_order'] ){
-        $sdg_order = sanitize_title( strtoupper($_POST['sdg_order']) );
-        add_term_meta( $term_id, 'sdg_order', $sdg_order, true );
-    }
-}
-// Edit SDG Order field
-add_action( 'sdgs_edit_form_fields', 'edit_sdg_order_field', 10, 2 );
-function edit_sdg_order_field( $term, $taxonomy ){
-    // get current sdg order code
-    $sdg_order = get_term_meta( $term->term_id, 'sdg_order', true );
-    $html = '<tr class="form-field term-group-wrap">
-            <th scope="row"><label for="sdg_order">SDG Order</label></th>
-            <td><input type="text" class="post-form" id="sdg_order" name="sdg_order" value="' . $sdg_order . '"></td>
-            </tr>';
-    echo $html;
-}
-// Update SDG Order Code
-add_action( 'edited_sdgs', 'update_sdg_order', 10, 2 );
-function update_sdg_order( $term_id, $tt_id ){
-    if( isset( $_POST['sdg_order'] ) && '' !== $_POST['sdg_order'] ){
-        $sdg_order = sanitize_title( strtoupper($_POST['sdg_order']) );
-        update_term_meta( $term_id, 'sdg_order', $sdg_order );
-    }
-}
-// Display SDG Order in taxonomy table
-add_filter('manage_edit-sdgs_columns', 'add_sdg_order_column' );
-function add_sdg_order_column( $columns ){
-    $columns['sdg_order'] = __( 'SDG #', 'orgmap' );
-    return $columns;
-}
-
-add_filter('manage_sdgs_custom_column', 'add_sdg_order_column_content', 10, 3 );
-function add_sdg_order_column_content( $content, $column_name, $term_id ){
-    if( $column_name !== 'sdg_order' ){
-        return $content;
-    }
-    $term_id = absint( $term_id );
-    $sdg_order = get_term_meta( $term_id, 'sdg_order', true );
-    if(!empty($sdg_order)){
-      $content .= esc_attr($sdg_order);
-    }
-    return $content;
-}
-// Make SDGs sortable
-add_filter( 'manage_edit-sdgs_sortable_columns', 'add_sdg_order_column_sortable' );
-function add_sdg_order_column_sortable( $sortable ){
-    $sortable['sdg_order'] = 'sdg_order';
-    return $sortable;
-}
 
 
 
 
-/** Create the CPT **/
-function OrgMap_create_org() {
-  $labels = array(
-      'name' => 'Organizations',
-      'singular_name' => 'Organization',
-      'add_new' => 'Add New',
-      'add_new_item' => 'Add New Organization',
-      'edit' => 'Edit',
-      'edit_item' => 'Edit Organization',
-      'new_item' => 'New Organization',
-      'view' => 'View',
-      'view_item' => 'View Organization',
-      'search_items' => 'Search Organizations',
-      'not_found' => 'No Organizations found',
-      'not_found_in_trash' => 'No Organizations found in Trash',
-      'parent' => 'Parent Organization',
-      'menu_name' => 'Organizations'
-    );
-
-  // Register the Organization Post Type
-  register_post_type(
-    'organization',
-    array(
-      'labels' => $labels,
-      'has_archive' => true,
-   		'public' => true,
-  		'supports' => array( 'title', 'editor', 'custom-fields', 'thumbnail' ),
-  		// 'taxonomies' => array(  ),
-  		'exclude_from_search' => false,
-      'menu_icon' => 'dashicons-groups',
-  		'capability_type' => 'post',
-  		'rewrite' => array( 'slug' => 'organizations' )
-    )
-  );
-
-}
 
 /** Add Full Name text box **/
 add_action( 'add_meta_boxes', 'OrgMap_organization_full_name' );
@@ -245,7 +94,7 @@ add_action( 'save_post', 'OrgMap_organization_full_name_box_save' );
 function OrgMap_organization_full_name_box_save( $post_id ) {
   if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
   return;
-  if ( !wp_verify_nonce( $_POST['organization_full_name_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+  if ( !isset($_POST['organization_full_name_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_full_name_box_content_nonce'], plugin_basename( __FILE__ ) ) )
   return;
   if ( 'page' == $_POST['post_type'] ) {
     if ( !current_user_can( 'edit_page', $post_id ) )
@@ -278,9 +127,10 @@ function OrgMap_organization_url_box_content( $post ) {
 }
 add_action( 'save_post', 'OrgMap_organization_url_box_save' );
 function OrgMap_organization_url_box_save( $post_id ) {
+
   if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
   return;
-  if ( !wp_verify_nonce( $_POST['organization_url_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+  if ( !isset($_POST['organization_url_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_url_box_content_nonce'], plugin_basename( __FILE__ ) ) )
   return;
   if ( 'page' == $_POST['post_type'] ) {
     if ( !current_user_can( 'edit_page', $post_id ) )
@@ -293,8 +143,6 @@ function OrgMap_organization_url_box_save( $post_id ) {
   update_post_meta( $post_id, 'organization_url', $data );
 }
 
-add_action( 'init', 'OrgMap_create_org');
-add_action( 'init', 'OrgMap_create_taxonomies');
 
 /** Enqueue Scripts for the map **/
 function OrgMap_enqueue_script() {
@@ -365,6 +213,8 @@ function orgmap_shortcode(){
   }
   // I'm going to store my query objects in here once I sorted them out
   $results = array();
+  // Prepare the Full List
+  $results['all'] = array('areas' => $countryList);
   // Cycle over Term to get related Orgs
   foreach($sdgs as $sdg){
     $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
@@ -389,7 +239,10 @@ function orgmap_shortcode(){
       $terms = get_the_terms(get_the_ID(), 'countries');
       foreach($terms as $country){
         $iso2 = strtoupper(get_term_meta($country->term_id, 'iso2', true));
+        // add to specific SDG
         $results[$sdg_order]['areas'][$iso2]['value']++;
+        // add to Full List
+        $results['all']['areas'][$iso2]['value']++;
       }
       $howManyOrgs++;
     endwhile;
@@ -412,12 +265,13 @@ function orgmap_shortcode(){
       $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
   ?>
     <li>
-      <a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-<?php echo $sdg_order; ?>" data-sdg="<?php echo $sdg_order; ?>"></a>
+      <a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-<?php echo $sdg_order; ?>" data-sdg="<?php echo $sdg_order; ?>" data-sdg-name="<?php echo $sdg->name; ?>"></a>
     </li>
   <?php
       }
   }
   ?>
+    <li><a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-all" data-sdg="all" data-sdg-name="All SDGs">ALL</a>
   </ul>
 </div>
 <script src="<?php echo plugin_dir_url(__FILE__); ?>js/maps/world_countries_miller.js"></script>
@@ -465,7 +319,7 @@ jQuery(document).ready(function(){
             attrs: {
                 fill: "#FFFFFF"
             },
-            label: "1 Organization"
+            label: "No Organization"
           },
           {
               max: 1,
@@ -501,11 +355,9 @@ jQuery(document).ready(function(){
       },
     },
 
-    areas: theData["1"]["areas"]
+    areas: theData["all"]["areas"]
   });
 });
 </script>
 <?php
-
-
 }
