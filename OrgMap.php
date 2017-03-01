@@ -12,145 +12,14 @@ License: GPL 3.0
 require_once(plugin_dir_path(__FILE__) . 'OrgMap.class.php');
 new OrgMapSetup();
 
-/** Add custom meta to taxonomies **/
-// ISO2 field for Countries
-add_action( 'countries_add_form_fields', 'add_iso2_field', 10, 2 );
-function add_iso2_field($taxonomy) {
-    $html = '<div class="form-field term-group">
-        <label for="iso2">ISO2 Code</label>
-        <input type="text" class="post-form" id="country-iso2-code" name="iso2">
-    </div>';
-    echo $html;
-}
-// Save ISO2 field
-add_action( 'created_countries', 'save_iso2_meta', 10, 2 );
-function save_iso2_meta( $term_id, $tt_id ){
-    if( isset( $_POST['iso2'] ) && '' !== $_POST['iso2'] ){
-        $iso2 = sanitize_title( strtoupper($_POST['iso2']) );
-        add_term_meta( $term_id, 'iso2', $iso2, true );
-    }
-}
-// Edit ISO2 field
-add_action( 'countries_edit_form_fields', 'edit_iso2_field', 10, 2 );
-function edit_iso2_field( $term, $taxonomy ){
-    // get current iso2 code
-    $iso2 = get_term_meta( $term->term_id, 'iso2', true );
-    $html = '<tr class="form-field term-group-wrap">
-            <th scope="row"><label for="iso2">ISO2 Code</label></th>
-            <td><input type="text" class="post-form" id="country-iso2-code" name="iso2" value="' . $iso2 . '"></td>
-            </tr>';
-    echo $html;
-}
-// Update ISO2 Code
-add_action( 'edited_countries', 'update_iso2', 10, 2 );
-function update_iso2( $term_id, $tt_id ){
-    if( isset( $_POST['iso2'] ) && '' !== $_POST['iso2'] ){
-        $iso2 = sanitize_title( strtoupper($_POST['iso2']) );
-        update_term_meta( $term_id, 'iso2', $iso2 );
-    }
-}
-// Display ISO2 in taxonomy table
-add_filter('manage_edit-countries_columns', 'add_iso2_column' );
-function add_iso2_column( $columns ){
-    $columns['iso2'] = __( 'ISO2', 'orgmap' );
-    return $columns;
-}
-add_filter('manage_countries_custom_column', 'add_iso2_column_content', 10, 3 );
-function add_iso2_column_content( $content, $column_name, $term_id ){
-    if( $column_name !== 'iso2' ){
-        return $content;
-    }
-    $term_id = absint( $term_id );
-    $iso2 = get_term_meta( $term_id, 'iso2', true );
-    if(!empty($iso2)){
-      $content .= esc_attr($iso2);
-    }
-    return $content;
-}
-
-
-
-
-
-
-/** Add Full Name text box **/
-add_action( 'add_meta_boxes', 'OrgMap_organization_full_name' );
-function OrgMap_organization_full_name() {
-    add_meta_box(
-        'organization_full_name_box',
-        __( 'Organization Full Name', 'orgmap' ),
-        'OrgMap_organization_full_name_box_content',
-        'organization',
-        'normal',
-        'high'
-    );
-}
-function OrgMap_organization_full_name_box_content( $post ) {
-  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_full_name_box_content_nonce' );
-  echo '<label for="full_name"></label>';
-  echo '<input type="text" id="full_name" name="full_name" style="width: 100%" placeholder="Organization Full Name..." value="'. (get_post_meta($post->ID, 'full_name',  true) ? : '') . '"/>';
-}
-add_action( 'save_post', 'OrgMap_organization_full_name_box_save' );
-function OrgMap_organization_full_name_box_save( $post_id ) {
-  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-  return;
-  if ( !isset($_POST['organization_full_name_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_full_name_box_content_nonce'], plugin_basename( __FILE__ ) ) )
-  return;
-  if ( 'page' == $_POST['post_type'] ) {
-    if ( !current_user_can( 'edit_page', $post_id ) )
-    return;
-  } else {
-    if ( !current_user_can( 'edit_post', $post_id ) )
-    return;
-  }
-  $data = $_POST['full_name'];
-  update_post_meta( $post_id, 'full_name', $data );
-}
-
-/** Add Organization URL text box **/
-add_action( 'add_meta_boxes', 'OrgMap_organization_url' );
-function OrgMap_organization_url() {
-    add_meta_box(
-        'organization_url_box',
-        __( 'Organization Website URL', 'orgmap' ),
-        'OrgMap_organization_url_box_content',
-        'organization',
-        'normal',
-        'high'
-    );
-}
-function OrgMap_organization_url_box_content( $post ) {
-  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_url_box_content_nonce' );
-  echo '<label for="organization_url"></label>';
-  echo '<input type="text" id="organization_url" name="organization_url" style="width: 100%" placeholder="Organization URL..." value="'. (get_post_meta($post->ID, 'organization_url',  true) ? : '') . '"/>';
-  echo "<span><em>Please include the protocol (http:// or https://) to make sure the link will work</em></span>";
-}
-add_action( 'save_post', 'OrgMap_organization_url_box_save' );
-function OrgMap_organization_url_box_save( $post_id ) {
-
-  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-  return;
-  if ( !isset($_POST['organization_url_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_url_box_content_nonce'], plugin_basename( __FILE__ ) ) )
-  return;
-  if ( 'page' == $_POST['post_type'] ) {
-    if ( !current_user_can( 'edit_page', $post_id ) )
-    return;
-  } else {
-    if ( !current_user_can( 'edit_post', $post_id ) )
-    return;
-  }
-  $data = $_POST['organization_url'];
-  update_post_meta( $post_id, 'organization_url', $data );
-}
-
 
 /** Enqueue Scripts for the map **/
 function OrgMap_enqueue_script() {
   /** stylesheet **/
   wp_enqueue_style( 'orgmap_css', plugin_dir_url( __FILE__ ) . 'css/orgmap_plugin.css' );
   /** javascript **/
-  wp_enqueue_script( 'raphael', 'https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.0/raphael-min.js', null, '2.2.0' );
-  wp_enqueue_script( 'mapael', plugin_dir_url( __FILE__ ) . 'js/jquery.mapael.min.js', array('jquery', 'raphael'), '2.0.0');
+  wp_enqueue_script( 'raphael',   plugin_dir_url( __FILE__ ) . 'js/raphael.min.js', null, '2.2.0' );
+  wp_enqueue_script( 'mapael',    plugin_dir_url( __FILE__ ) . 'js/jquery.mapael.min.js', array('jquery', 'raphael'), '2.0.0');
   wp_enqueue_script( 'orgmap_js', plugin_dir_url( __FILE__ ) . 'js/orgmap.js', array('mapael'), '1.0.0' );
 }
 add_action('wp_enqueue_scripts', 'OrgMap_enqueue_script');
@@ -184,8 +53,8 @@ function OrgMap_org_sdg_terms($icons = true){
 
 
 /** Shortcode to have a Map on a page/post **/
-add_shortcode('orgmap', 'orgmap_shortcode');
-function orgmap_shortcode(){
+add_shortcode('orgmap', 'OrgMap_shortcode');
+function OrgMap_shortcode(){
   // get all the_terms
   $sdgs = get_terms(array(
     'taxonomy'    => 'sdgs',
@@ -197,15 +66,27 @@ function orgmap_shortcode(){
   // Get All Countries
   $countries = get_terms(array(
     'taxonomy'    => 'countries',
-    'meta_key'    => 'iso2',
-    'orderby'     => 'meta_value',
+    'orderby'     => 'slug',
     'order'       => 'ASC',
     'hide_empty'  => false
   ));
+  // Count Organizations to set the legend slices dynamically
+  $orgCount = wp_count_posts('organization');
+    // Only published profiles
+  $orgCount = $orgCount->publish;
+  $levels = array(
+    'lower' => 3,
+    'higher' => 8
+  );
+  if($orgCount > 12) {
+    $levels['lower']  = floor( $orgCount / 4 );
+    $levels['higher'] = ceil( $levels['lower'] * 2.5);
+  }
+
   // Include the ISO2 code here, do it once instead of a million times
   $countryList = array();
-  foreach($countries as $country){
-    $iso2 = strtoupper(get_term_meta($country->term_id, 'iso2', true));
+  foreach( $countries as $country ){
+    $iso2 = strtoupper($country->slug);
     $countryList[$iso2] = array(
       'value' => 0,
       'href'  => '/country/' . $country->slug
@@ -214,9 +95,9 @@ function orgmap_shortcode(){
   // I'm going to store my query objects in here once I sorted them out
   $results = array();
   // Prepare the Full List
-  $results['all'] = array('areas' => $countryList);
+  $results['all'] = array( 'areas' => $countryList );
   // Cycle over Term to get related Orgs
-  foreach($sdgs as $sdg){
+  foreach( $sdgs as $sdg ){
     $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
     // Set SDG Slug as Array Index for current iteration, add the list of Areas
     $results[$sdg_order] = array('areas' => $countryList);
@@ -238,7 +119,7 @@ function orgmap_shortcode(){
     while( $orgs->have_posts() ) : $orgs->the_post();
       $terms = get_the_terms(get_the_ID(), 'countries');
       foreach($terms as $country){
-        $iso2 = strtoupper(get_term_meta($country->term_id, 'iso2', true));
+        $iso2 = strtoupper($country->slug);
         // add to specific SDG
         $results[$sdg_order]['areas'][$iso2]['value']++;
         // add to Full List
@@ -330,26 +211,26 @@ jQuery(document).ready(function(){
           },
           {
               min: 1,
-              max: 10,
+              max: <?php echo $levels['lower']; ?>,
               attrs: {
                   fill: "#3EC7D4"
               },
-              label: "Between 1 and 10 Organizations"
+              label: "Between 1 and <?php echo $levels['lower']; ?> Organizations"
           },
           {
-              min: 10,
-              max: 50,
+              min: <?php echo $levels['lower']; ?>,
+              max: <?php echo $levels['higher']; ?>,
               attrs: {
                   fill: "#028E9B"
               },
-              label: "Between 10 and 50 Organizations"
+              label: "Between <?php echo $levels['lower']; ?> and <?php echo $levels['higher']; ?> Organizations"
           },
           {
-              min: 50,
+              min: <?php echo $levels['higher']; ?>,
               attrs: {
                   fill: "#01565E"
               },
-              label: "More than 50 Organizations"
+              label: "More than <?php echo $levels['higher']; ?> Organizations"
           }
         ]
       },
@@ -360,4 +241,75 @@ jQuery(document).ready(function(){
 });
 </script>
 <?php
+}
+
+/** Custom Meta Boxes for the CPT **/
+/** Add Full Name text box **/
+add_action( 'add_meta_boxes', 'OrgMap_organization_full_name' );
+function OrgMap_organization_full_name() {
+    add_meta_box(
+        'organization_full_name_box',
+        __( 'Organization Full Name', 'orgmap' ),
+        'OrgMap_organization_full_name_box_content',
+        'organization',
+        'normal',
+        'high'
+    );
+}
+function OrgMap_organization_full_name_box_content( $post ) {
+  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_full_name_box_content_nonce' );
+  echo '<label for="full_name"></label>';
+  echo '<input type="text" id="full_name" name="full_name" style="width: 100%" placeholder="Organization Full Name..." value="'. (get_post_meta($post->ID, 'full_name',  true) ? : '') . '"/>';
+}
+add_action( 'save_post', 'OrgMap_organization_full_name_box_save' );
+function OrgMap_organization_full_name_box_save( $post_id ) {
+  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+  return;
+  if ( !isset($_POST['organization_full_name_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_full_name_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+  return;
+  if ( 'page' == $_POST['post_type'] ) {
+    if ( !current_user_can( 'edit_page', $post_id ) )
+    return;
+  } else {
+    if ( !current_user_can( 'edit_post', $post_id ) )
+    return;
+  }
+  $data = $_POST['full_name'];
+  update_post_meta( $post_id, 'full_name', $data );
+}
+
+/** Add Organization URL text box **/
+add_action( 'add_meta_boxes', 'OrgMap_organization_url' );
+function OrgMap_organization_url() {
+    add_meta_box(
+        'organization_url_box',
+        __( 'Organization Website URL', 'orgmap' ),
+        'OrgMap_organization_url_box_content',
+        'organization',
+        'normal',
+        'high'
+    );
+}
+function OrgMap_organization_url_box_content( $post ) {
+  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_url_box_content_nonce' );
+  echo '<label for="organization_url"></label>';
+  echo '<input type="text" id="organization_url" name="organization_url" style="width: 100%" placeholder="Organization URL..." value="'. (get_post_meta($post->ID, 'organization_url',  true) ? : '') . '"/>';
+  echo "<span><em>Please include the protocol (http:// or https://) to make sure the link will work</em></span>";
+}
+add_action( 'save_post', 'OrgMap_organization_url_box_save' );
+function OrgMap_organization_url_box_save( $post_id ) {
+
+  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+  return;
+  if ( !isset($_POST['organization_url_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_url_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+  return;
+  if ( 'page' == $_POST['post_type'] ) {
+    if ( !current_user_can( 'edit_page', $post_id ) )
+    return;
+  } else {
+    if ( !current_user_can( 'edit_post', $post_id ) )
+    return;
+  }
+  $data = $_POST['organization_url'];
+  update_post_meta( $post_id, 'organization_url', $data );
 }
