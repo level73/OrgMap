@@ -82,9 +82,10 @@ function OrgMap_shortcode(){
     'order'       => 'ASC',
     'hide_empty'  => false
   ));
+
   // Count Organizations to set the legend slices dynamically
   $orgCount = wp_count_posts('organization');
-    // Only published profiles
+  // Only published profiles
   $orgCount = $orgCount->publish;
   $levels = array(
     'lower' => 3,
@@ -100,14 +101,26 @@ function OrgMap_shortcode(){
   foreach( $countries as $country ){
     $iso2 = strtoupper($country->slug);
     $countryList[$iso2] = array(
-      'value' => 0,
-      'href'  => '/country/' . $country->slug
+      'value'   => 0,
+      'href'    => '/country/' . $country->slug,
+      'tooltip' => array(
+        'cssClass'  => 'orgmapTooltip',
+        'content'   => '<h3>' . $country->name . '</h3><p><strong>0</strong> ' .  __('Organizations or Initiatives')  . '</p>'
+      )
+    );
+    $all[$iso2] = array(
+      'value'   => $country->count,
+      'href'    => '/country/' . $country->slug,
+      'tooltip' => array(
+        'cssClass'  => 'orgmapTooltip',
+        'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $country->count . '</strong> ' . ($country->count !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
+      )
     );
   }
   // I'm going to store my query objects in here once I sorted them out
   $results = array();
   // Prepare the Full List
-  $results['all'] = array( 'areas' => $countryList );
+  $results['all'] = array( 'areas' => $all );
   // Cycle over Term to get related Orgs
   foreach( $sdgs as $sdg ){
     $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
@@ -134,22 +147,36 @@ function OrgMap_shortcode(){
         $iso2 = strtoupper($country->slug);
         // add to specific SDG
         $results[$sdg_order]['areas'][$iso2]['value']++;
+        $val = $results[$sdg_order]['areas'][$iso2]['value'];
+        $results[$sdg_order]['areas'][$iso2]['tooltip'] = array(
+          'cssClass'  => 'orgmapTooltip',
+          'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $val . '</strong> ' . ($val !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
+        );
+        /*
         // add to Full List
         $results['all']['areas'][$iso2]['value']++;
+        $allVal = $results['all']['areas'][$iso2]['value'];
+        $results['all']['areas'][$iso2]['tooltip'] = array(
+          'cssClass'  => 'orgmapTooltip',
+          'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $countryList[$iso2]->count . '</strong> ' . ($allVal !== 1 ? __('Organizations/Initiatives') : __('Organization/Initiative') ) . '</p>'
+        );
+        */
       }
       $howManyOrgs++;
     endwhile;
     // clean up post data
     wp_reset_postdata();
   }
-  //print_r($results);
+
 ?>
+
 <div class="orgmap">
   <div class="map"></div>
   <div class="areaLegend"></div>
 </div>
 <div class="orgmap-sdg-list">
-  <h3><?php echo __('Filter the Map by SDG', 'orgmap'); ?></h3>
+
+  <p><?php echo __('Filter the Map by SDG:', 'orgmap'); ?> <span id="orgmap-filter">ALL</span></p>
   <div class="areaLegend"></div>
   <ul class="sdg-icon-list">
   <?php
@@ -175,8 +202,12 @@ jQuery(document).ready(function(){
   jQuery('.orgmap-map-control').click(function(e){
     e.preventDefault();
     var sdg = jQuery(this).data('sdg');
+    var filterName = jQuery(this).data('sdg-name');
     jQuery('.orgmap-map-control').fadeTo(200, 0.4);
     jQuery(this).fadeTo(200, 1);;
+    jQuery('#orgmap-filter').removeClass(function() {
+      return jQuery(this).attr("class")
+    }).addClass('sdg-term-' + sdg).html(filterName);
 
     jQuery('.orgmap').trigger('update', [{
       mapOptions: theData[sdg],
@@ -190,9 +221,12 @@ jQuery(document).ready(function(){
       name : "world_countries_miller",
       defaultArea: {
         attrs: {
-          fill: "#fff",
+          fill: "#ABCAAC",
           stroke: "#232323",
           "stroke-width": 0.3
+        },
+        attrsHover: {
+          fill: "#EAF9C0"
         }
       },
       zoom: {
@@ -207,17 +241,18 @@ jQuery(document).ready(function(){
 
         slices: [
           {
-            max: 0,
+            min: 0,
             max: 0,
             attrs: {
-                fill: "#FFFFFF"
+                fill: "#ABCAAC"
             },
             label: "No Organization"
           },
           {
+              min: 1,
               max: 1,
               attrs: {
-                  fill: "#6ECBD4"
+                  fill: "#758F77"
               },
               label: "1 Organization"
           },
@@ -225,7 +260,7 @@ jQuery(document).ready(function(){
               min: 1,
               max: <?php echo $levels['lower']; ?>,
               attrs: {
-                  fill: "#3EC7D4"
+                  fill: "#537355"
               },
               label: "Between 1 and <?php echo $levels['lower']; ?> Organizations"
           },
@@ -233,14 +268,14 @@ jQuery(document).ready(function(){
               min: <?php echo $levels['lower']; ?>,
               max: <?php echo $levels['higher']; ?>,
               attrs: {
-                  fill: "#028E9B"
+                  fill: "#375339"
               },
               label: "Between <?php echo $levels['lower']; ?> and <?php echo $levels['higher']; ?> Organizations"
           },
           {
               min: <?php echo $levels['higher']; ?>,
               attrs: {
-                  fill: "#01565E"
+                  fill: "#1E2E20"
               },
               label: "More than <?php echo $levels['higher']; ?> Organizations"
           }
