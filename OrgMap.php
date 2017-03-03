@@ -36,6 +36,17 @@ function OrgMap_Organization_single($template){
 }
 add_filter('single_template', 'OrgMap_Organization_single', 1);
 
+function OrgMap_Country_archive($template){
+  remove_all_filters( current_filter(), PHP_INT_MAX );
+  $current = get_queried_object();
+  if($current->taxonomy == 'countries'){
+    $plugin_path = plugin_dir_path(__FILE__);
+    $template_name = 'archive_country.php';
+    return $plugin_path . '/templates/' . $template_name;
+  }
+  return $template;
+}
+add_filter('taxonomy_template', 'OrgMap_Country_archive', 1);
 
 /** List of SDG Taxonomy terms with the correct colors **/
 function OrgMap_org_sdg_terms($icons = true){
@@ -50,6 +61,7 @@ function OrgMap_org_sdg_terms($icons = true){
     echo '</ul>';
   }
 }
+
 
 
 /** Shortcode to have a Map on a page/post **/
@@ -241,75 +253,4 @@ jQuery(document).ready(function(){
 });
 </script>
 <?php
-}
-
-/** Custom Meta Boxes for the CPT **/
-/** Add Full Name text box **/
-add_action( 'add_meta_boxes', 'OrgMap_organization_full_name' );
-function OrgMap_organization_full_name() {
-    add_meta_box(
-        'organization_full_name_box',
-        __( 'Organization Full Name', 'orgmap' ),
-        'OrgMap_organization_full_name_box_content',
-        'organization',
-        'normal',
-        'high'
-    );
-}
-function OrgMap_organization_full_name_box_content( $post ) {
-  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_full_name_box_content_nonce' );
-  echo '<label for="full_name"></label>';
-  echo '<input type="text" id="full_name" name="full_name" style="width: 100%" placeholder="Organization Full Name..." value="'. (get_post_meta($post->ID, 'full_name',  true) ? : '') . '"/>';
-}
-add_action( 'save_post', 'OrgMap_organization_full_name_box_save' );
-function OrgMap_organization_full_name_box_save( $post_id ) {
-  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-  return;
-  if ( !isset($_POST['organization_full_name_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_full_name_box_content_nonce'], plugin_basename( __FILE__ ) ) )
-  return;
-  if ( 'page' == $_POST['post_type'] ) {
-    if ( !current_user_can( 'edit_page', $post_id ) )
-    return;
-  } else {
-    if ( !current_user_can( 'edit_post', $post_id ) )
-    return;
-  }
-  $data = $_POST['full_name'];
-  update_post_meta( $post_id, 'full_name', $data );
-}
-
-/** Add Organization URL text box **/
-add_action( 'add_meta_boxes', 'OrgMap_organization_url' );
-function OrgMap_organization_url() {
-    add_meta_box(
-        'organization_url_box',
-        __( 'Organization Website URL', 'orgmap' ),
-        'OrgMap_organization_url_box_content',
-        'organization',
-        'normal',
-        'high'
-    );
-}
-function OrgMap_organization_url_box_content( $post ) {
-  wp_nonce_field( plugin_basename( __FILE__ ), 'organization_url_box_content_nonce' );
-  echo '<label for="organization_url"></label>';
-  echo '<input type="text" id="organization_url" name="organization_url" style="width: 100%" placeholder="Organization URL..." value="'. (get_post_meta($post->ID, 'organization_url',  true) ? : '') . '"/>';
-  echo "<span><em>Please include the protocol (http:// or https://) to make sure the link will work</em></span>";
-}
-add_action( 'save_post', 'OrgMap_organization_url_box_save' );
-function OrgMap_organization_url_box_save( $post_id ) {
-
-  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-  return;
-  if ( !isset($_POST['organization_url_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_url_box_content_nonce'], plugin_basename( __FILE__ ) ) )
-  return;
-  if ( 'page' == $_POST['post_type'] ) {
-    if ( !current_user_can( 'edit_page', $post_id ) )
-    return;
-  } else {
-    if ( !current_user_can( 'edit_post', $post_id ) )
-    return;
-  }
-  $data = $_POST['organization_url'];
-  update_post_meta( $post_id, 'organization_url', $data );
 }

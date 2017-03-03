@@ -1,0 +1,49 @@
+.country-taxonomy-entry {
+  padding: 15px 0px;
+  border-top: 1px solid #000022;
+  display: block;
+  header, aside {
+    float: left;
+  }
+}
+.country-taxonomy-archive {
+  .main-taxonomy-description, .taxonomy-stats {
+    display: block; float: left;
+  }
+  .taxonomy-stats .taxonomy-counter-number {
+    font-size: 65px;
+    line-height: 65px;
+    float: left;
+    clear: none;
+    width: 30%;
+    padding: 5px 15px;
+    text-align: center;
+    display: inline-block;
+    border-radius: 5px;
+    background: #000022;
+    color: white;
+  }
+  .taxonomy-stats .taxonomy-counter-label {
+    float: left;
+    clear: none;
+    width: 70%;
+    padding: 10px 15px;
+    display: inline-block;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .country-taxonomy-archive {
+    .main-taxonomy-description {
+      display: block; float: left; width: 65%; padding-right: 25px;
+    }
+    .taxonomy-stats {
+      display: block; float: left; width: 35%;
+    }
+  }
+  .country-taxonomy-entry {
+    header, aside {
+      float: left; width: 50%;
+    }
+  }
+}
