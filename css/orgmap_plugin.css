@@ -1,4 +1,19 @@
 /** Main Less file - imports pieces and has some of the 'main styles' **/
+nav.sdg-tabs .sdg-term-list .sdg-icon-list {
+  width: 5.8823%;
+  height: auto;
+  margin: 0px;
+}
+nav.sdg-tabs .sdg-term-list .sdg-icon-list .sdg-icon {
+  width: 100%;
+  min-height: 40px;
+}
+.sdg-hidden {
+  display: none  !important;
+}
+.sdg-show {
+  display: block !important;
+}
 /**
  * Nicolas gallagher's clearfix http://nicolasgallagher.com/micro-clearfix-hack/
  * For modern browsers
@@ -382,7 +397,7 @@ ul.sdg-icon-list li a.sdg-icon {
 .mapael {
   overflow: hidden;
   position: relative;
-  background: #9ADAF5;
+  background: white;
 }
 .mapael .orgmapTooltip {
   position: absolute;

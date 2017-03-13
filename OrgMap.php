@@ -12,6 +12,9 @@ License: GPL 3.0
 require_once(plugin_dir_path(__FILE__) . 'OrgMap.class.php');
 new OrgMapSetup();
 
+function sanitize_details( $resources ) {
+  return wp_kses_post( $resources );
+}
 
 /** Enqueue Scripts for the map **/
 function OrgMap_enqueue_script() {
@@ -57,6 +60,40 @@ function OrgMap_org_sdg_terms($icons = true){
     foreach($terms as $term){
       $sdg_order = get_term_meta($term->term_id, 'sdg_order', true);
       echo '<li class="sdg-term-' . $sdg_order . (!$icons ? '' : ' sdg-icon-list') . '"><a class="sdg-taxonomy-term ' . (!$icons ? '' : 'sdg-icon') . ' sdg-term-' . $sdg_order . '" href="/sdg/' . $term->slug . '" title="' . $term->name . '" alt="' . $term->name . '" >' . $term->name . '</a></li>';
+    }
+    echo '</ul>';
+  }
+}
+
+/** Print SDG Taxonomy terms as a class **/
+function OrgMap_org_sdg_classes(){
+  global $post;
+  $terms = get_the_terms($post->id, 'sdgs');
+  if(!empty($terms) && !is_wp_error($terms)){
+    $classes = array();
+    foreach($terms as $term){
+      $sdg_order = get_term_meta($term->term_id, 'sdg_order', true);
+      $classes[] = 'sdg-class-' . $sdg_order;
+    }
+    echo implode(' ', $classes);
+  }
+}
+
+
+/** List of SDG Taxonomy terms with the correct colors **/
+function OrgMap_sdg_terms($icons = true){
+  $terms = get_terms(array(
+    'taxonomy'    => 'sdgs',
+    'meta_key'    => 'sdg_order',
+    'orderby'     => 'meta_value_num',
+    'order'       => 'ASC',
+    'hide_empty'  => false
+  ));
+  if(!empty($terms) && !is_wp_error($terms)){
+    echo '<ul class="sdg-term-list">';
+    foreach($terms as $term){
+      $sdg_order = get_term_meta($term->term_id, 'sdg_order', true);
+      echo '<li class="sdg-term-' . $sdg_order . (!$icons ? '' : ' sdg-icon-list') . '"><a data-sdg="' . $sdg_order . '" class="sdg-taxonomy-term ' . (!$icons ? '' : 'sdg-icon') . ' sdg-term-' . $sdg_order . '" href="/sdg/' . $term->slug . '" title="' . $term->name . '" alt="' . $term->name . '" >' . $term->name . '</a></li>';
     }
     echo '</ul>';
   }
@@ -221,7 +258,7 @@ jQuery(document).ready(function(){
       name : "world_countries_miller",
       defaultArea: {
         attrs: {
-          fill: "#ABCAAC",
+          fill: "white",
           stroke: "#232323",
           "stroke-width": 0.3
         },
@@ -244,7 +281,7 @@ jQuery(document).ready(function(){
             min: 0,
             max: 0,
             attrs: {
-                fill: "#ABCAAC"
+                fill: "white"
             },
             label: "No Organization"
           },

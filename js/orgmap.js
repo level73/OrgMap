@@ -21,3 +21,28 @@ function spectrum(hue, steps, minSat, maxSat, minLig, maxLig){
 
     return theColors;
 }
+
+jQuery(document).ready(function(){
+  // Checking what SDGS are alive on the country page
+  var theSDGList = jQuery('.sdg-tabs .sdg-term-list .sdg-icon-list .sdg-icon');
+  var activeSDG = [];
+  theSDGList.each(function(){
+    var sdgIndex = jQuery(this).data('sdg');
+    if(jQuery('.country-taxonomy-entry.sdg-class-' + sdgIndex).length > 0){
+      activeSDG.push(sdgIndex);
+    }
+    else {
+      jQuery(this).fadeTo(300, 0.2);
+    }
+  });
+
+  // show/hide organizatons and initiatives on the main country page
+  jQuery('.sdg-tabs .sdg-taxonomy-term').click(function(e){
+    e.preventDefault();
+    var theSDG = jQuery(this).data('sdg');
+    jQuery('.country-taxonomy-entry').addClass('sdg-hidden').removeClass('sdg-show');
+    jQuery('.country-taxonomy-entry.sdg-class-' + theSDG ).removeClass('sdg-hidden').addClass('sdg-show');
+  })
+
+
+});

@@ -290,6 +290,11 @@
       add_filter( 'manage_sdgs_custom_column', array( $this, 'add_sdg_order_column_content'), 10, 3 );
       add_filter( 'manage_edit-sdgs_columns', array( $this, 'add_sdg_order_column'), 10, 3 );
 
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_resources_field'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_resources_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_resources_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_resources'), 10, 2 );
+
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_full_name'), 10, 3 );
       add_action( 'save_post', array( $this, 'OrgMap_organization_full_name_box_save'), 10, 3 );
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_url'), 10, 3 );
@@ -420,6 +425,52 @@
         }
         return $content;
     }
+
+    // Add custom "resources" field for countries
+    function add_country_resources_field($taxonomy) {
+        wp_nonce_field( basename( __FILE__ ), 'country_resources_nonce' );
+        echo '<div class="form-field term-group">
+            <label for="resources">Resources</label>';
+        wp_editor('', 'resources');
+        echo '</div>';
+
+    }
+
+    // Save Country Resources  field
+    function save_country_resources_meta( $term_id, $tt_id ){
+      if ( ! isset( $_POST['country_resources_nonce'] ) || ! wp_verify_nonce( $_POST['country_resources_nonce'], basename( __FILE__ ) ) ) {
+    		return;
+    	}
+      if( isset( $_POST['resources'] ) && '' !== $_POST['resources'] ){
+        $resources = $_POST['resources'];
+        add_term_meta( $term_id, 'resources', sanitize_details($resources), true );
+      }
+    }
+    // Edit Country Resources  field
+    function edit_country_resources_field( $term, $taxonomy ){
+        // get current Country Resources  code
+        $resources = get_term_meta( $term->term_id, 'resources', true );
+        echo '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="resources">Resources</label></th>
+                <td>';
+                wp_nonce_field( basename( __FILE__ ), 'country_resources_nonce' );
+                wp_editor( sanitize_details($resources), 'resources');
+        echo '</td></tr>';
+
+    }
+    // Update Country Resources  Field
+    function update_country_resources( $term_id, $tt_id ){
+      if ( ! isset( $_POST['country_resources_nonce'] ) || ! wp_verify_nonce( $_POST['country_resources_nonce'], basename( __FILE__ ) ) ) {
+    		return;
+    	}
+      if( isset( $_POST['resources'] ) && '' !== $_POST['resources'] ){
+        $resources = $_POST['resources'];
+        update_term_meta( $term_id, 'resources', sanitize_details($resources) );
+      }
+    }
+
+
+
     function create_organization_cpt(){
       $labels = array(
           'name' => 'Organizations',
