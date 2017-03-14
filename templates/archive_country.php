@@ -24,21 +24,88 @@ $counter = new WP_Query(
   )
 );
 $counter = $counter->found_posts;
+$image_id = get_term_meta ( $term->term_id, 'country-image-id', true );
+$country_npl = get_term_meta ( $term->term_id, 'country-npl', true );
+$country_npl_rural = get_term_meta ( $term->term_id, 'country-npl-rural', true );
+$country_global_poorest = get_term_meta ( $term->term_id, 'country-global-poorest', true );
+$country_literacy = get_term_meta ( $term->term_id, 'country-literacy', true );
+$country_mortality = get_term_meta ( $term->term_id, 'country-mortality', true );
+$country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
 ?>
 <header class="country-taxonomy-archive country-<?php echo $term->slug; ?> cf">
+
+  <h1>
+    <?php echo wp_get_attachment_image ( $image_id, 'country-header', false, array('class' => 'country-header') ); ?>
+    <span class="country-taxonomy-title"><?php echo $term->name; ?></span>
+  </h1>
+
   <div class="main-taxonomy-description">
-    <h1><?php echo $term->name; ?></h1>
     <p class="country-taxonomy-description">
       <?php echo $term->description; ?>
     </p>
   </div>
   <div class="taxonomy-stats">
-    <div class="counter">
-      <span class="taxonomy-counter-number"><?php echo $counter; ?></span>
-      <span class="taxonomy-counter-label"><?php echo ($counter != 1  ? __('Organizations or initiatives in this country') : __('Organization or initiative in this country')); ?></span>
+
+    <div class="taxonomy-graph cf">
+      <div class="taxonomy-data taxonomy-data-2">
+        <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+          <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
+          <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#d2d3d4" stroke-width="3"></circle>
+          <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#ce4b99" stroke-width="3" stroke-dasharray="<?php echo $country_npl . ' ' . (100 - $country_npl); ?>" stroke-dashoffset="25"></circle>
+          <g class="chart-text">
+            <text x="50%" y="50%" class="chart-number">
+              <?php echo $country_npl; ?>%
+            </text>
+          </g>
+        </svg>
+        <h3>Population living below the national poverty line</h3>
+      </div>
+
+
+      <div class="taxonomy-data taxonomy-data-2">
+        <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+          <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
+          <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#d2d3d4" stroke-width="3"></circle>
+          <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#ce4b99" stroke-width="3" stroke-dasharray="<?php echo $country_npl_rural . ' ' . (100 - $country_npl_rural); ?>" stroke-dashoffset="25"></circle>
+          <g class="chart-text">
+            <text x="50%" y="50%" class="chart-number">
+              <?php echo $country_npl_rural; ?>%
+            </text>
+            <text x="50%" y="50%" class="chart-label">
+              rural
+            </text>
+          </g>
+        </svg>
+        <h3>Rural Population living below the national poverty line</h3>
+      </div>
+
+      <div class="taxonomy-data taxonomy-data-2">
+        <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+          <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
+          <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#d2d3d4" stroke-width="3"></circle>
+          <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#ce4b99" stroke-width="3" stroke-dasharray="<?php echo $country_global_poorest . ' ' . (100 - $country_global_poorest); ?>" stroke-dashoffset="25"></circle>
+          <g class="chart-text">
+            <text x="50%" y="50%" class="chart-number">
+              <?php echo $country_global_poorest; ?>%
+            </text>
+          </g>
+        </svg>
+        <h3>National % of Global Poorest 20%</h3>
+      </div>
     </div>
-    <div class="taxonomy-graph">
-      <img src="<?php echo plugins_url( 'assets/images/graph_dummy.png', dirname(__FILE__) ); ?>" alt="graphs of dummy data">
+    <div class="taxonomy-graph cf">
+      <div class="taxonomy-data taxonomy-data-3">
+        <span class="taxonomy-data-value"><?php echo $country_literacy; ?>%</span>
+        <h3>Adult Literacy Percentage</h3>
+      </div>
+      <div class="taxonomy-data taxonomy-data-3">
+        <span class="taxonomy-data-value"><?php echo $country_mortality; ?></span>
+        <h3>Infant Mortality Rate (per 1000)</h3>
+      </div>
+      <div class="taxonomy-data taxonomy-data-1">
+        <span class="taxonomy-data-value"><?php echo $country_hdi; ?></span>
+        <h3>Human Development Index</h3>
+      </div>
     </div>
     <div class="taxonomy-resources">
       <h3>Resources</h3>
@@ -48,6 +115,10 @@ $counter = $counter->found_posts;
 </header>
 <nav class="sdg-tabs">
   <h3>View Initiatives and Organizations by SDG</h3>
+  <div class="counter">
+    <span class="taxonomy-counter-number"><?php echo $counter; ?></span>
+    <span class="taxonomy-counter-label"><?php echo ($counter != 1  ? __('Organizations or initiatives in this country') : __('Organization or initiative in this country')); ?></span>
+  </div>
   <?php  OrgMap_sdg_terms(); ?>
 </nav>
 <?php while ( have_posts() ) : the_post(); ?>

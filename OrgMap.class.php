@@ -295,6 +295,43 @@
       add_action( 'countries_edit_form_fields', array( $this, 'edit_country_resources_field'), 10, 2 );
       add_action( 'edited_countries', array( $this, 'update_country_resources'), 10, 2 );
 
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_image'), 10, 2);
+      add_action( 'created_countries', array( $this, 'save_country_image'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array ( $this, 'update_country_image' ), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'updated_country_image'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_npl'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_npl_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_npl_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_npl'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_npl_location'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_npl_location_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_npl_location_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_npl_location'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_poorest'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_poorest_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_poorest_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_poorest'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_literacy'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_literacy_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_literacy_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_literacy'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_mortality'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_mortality_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_mortality_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_mortality'), 10, 2 );
+
+      add_action( 'countries_add_form_fields', array( $this, 'add_country_hdi'), 10, 2 );
+      add_action( 'created_countries', array( $this, 'save_country_hdi_meta'), 10, 2 );
+      add_action( 'countries_edit_form_fields', array( $this, 'edit_country_hdi_field'), 10, 2 );
+      add_action( 'edited_countries', array( $this, 'update_country_hdi'), 10, 2 );
+
+      add_action( 'admin_footer', array ( $this, 'image_script' ) );
+
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_full_name'), 10, 3 );
       add_action( 'save_post', array( $this, 'OrgMap_organization_full_name_box_save'), 10, 3 );
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_url'), 10, 3 );
@@ -435,7 +472,6 @@
         echo '</div>';
 
     }
-
     // Save Country Resources  field
     function save_country_resources_meta( $term_id, $tt_id ){
       if ( ! isset( $_POST['country_resources_nonce'] ) || ! wp_verify_nonce( $_POST['country_resources_nonce'], basename( __FILE__ ) ) ) {
@@ -467,6 +503,333 @@
         $resources = $_POST['resources'];
         update_term_meta( $term_id, 'resources', sanitize_details($resources) );
       }
+    }
+
+    // add custom image header for country page
+    public function add_country_image ( $taxonomy ) { ?>
+      <div class="form-field term-group">
+        <label for="country-image-id"><?php _e('Image', 'OrgMap'); ?></label>
+        <input type="hidden" id="country-image-id" name="country-image-id" class="custom_media_url" value="">
+        <div id="country-image-wrapper"></div>
+        <p>
+          <input type="button" class="button button-secondary ct_tax_media_button" id="ct_tax_media_button" name="ct_tax_media_button" value="<?php _e( 'Add Image', 'OrgMap' ); ?>" />
+          <input type="button" class="button button-secondary ct_tax_media_remove" id="ct_tax_media_remove" name="ct_tax_media_remove" value="<?php _e( 'Remove Image', 'OrgMap' ); ?>" />
+        </p>
+      </div>
+     <?php
+    }
+    // image js script to manage WP Image editor
+    public function image_script(){?>
+       <script>
+         jQuery(document).ready( function($) {
+           function ct_media_upload(button_class) {
+             var _custom_media = true,
+             _orig_send_attachment = wp.media.editor.send.attachment;
+             $('body').on('click', button_class, function(e) {
+               var button_id = '#'+$(this).attr('id');
+               var send_attachment_bkp = wp.media.editor.send.attachment;
+               var button = $(button_id);
+               _custom_media = true;
+               wp.media.editor.send.attachment = function(props, attachment){
+                 if ( _custom_media ) {
+                   $('#country-image-id').val(attachment.id);
+                   $('#country-image-wrapper').html('<img class="custom_media_image" src="" style="margin:0;padding:0;max-height:100px;float:none;" />');
+                   $('#country-image-wrapper .custom_media_image').attr('src',attachment.sizes.thumbnail.url).css('display','block');
+                 } else {
+                   return _orig_send_attachment.apply( button_id, [props, attachment] );
+                 }
+                }
+             wp.media.editor.open(button);
+             return false;
+           });
+         }
+         ct_media_upload('.ct_tax_media_button.button');
+         $('body').on('click','.ct_tax_media_remove',function(){
+           $('#country-image-id').val('');
+           $('#country-image-wrapper').html('<img class="custom_media_image" src="" style="margin:0;padding:0;max-height:100px;float:none;" />');
+         });
+         // Thanks: http://stackoverflow.com/questions/15281995/wordpress-create-category-ajax-response
+         $(document).ajaxComplete(function(event, xhr, settings) {
+           var queryStringArr = settings.data.split('&');
+           if( $.inArray('action=add-tag', queryStringArr) !== -1 ){
+             var xml = xhr.responseXML;
+             $response = $(xml).find('term_id').text();
+             if($response!=""){
+               // Clear the thumb image
+               $('#country-image-wrapper').html('');
+             }
+           }
+         });
+       });
+     </script>
+     <?php
+    }
+    // save image meta
+    public function save_country_image ( $term_id, $tt_id ) {
+     if( isset( $_POST['country-image-id'] ) && '' !== $_POST['country-image-id'] ){
+        $image = $_POST['country-image-id'];
+        add_term_meta( $term_id, 'country-image-id', $image, true );
+      }
+    }
+    // update country image
+    public function update_country_image ( $term, $taxonomy ) { ?>
+      <tr class="form-field term-group-wrap">
+        <th scope="row">
+          <label for="country-image-id"><?php _e( 'Image', 'OrgMap' ); ?></label>
+        </th>
+        <td>
+          <?php $image_id = get_term_meta ( $term -> term_id, 'country-image-id', true ); ?>
+          <input type="hidden" id="country-image-id" name="country-image-id" value="<?php echo $image_id; ?>">
+          <div id="country-image-wrapper">
+          <?php
+          if ( $image_id ) {
+            echo wp_get_attachment_image ( $image_id, 'thumbnail' );
+          }
+          ?>
+          </div>
+          <p>
+            <input type="button" class="button button-secondary ct_tax_media_button" id="ct_tax_media_button" name="ct_tax_media_button" value="<?php _e( 'Add Image', 'OrgMap' ); ?>" />
+            <input type="button" class="button button-secondary ct_tax_media_remove" id="ct_tax_media_remove" name="ct_tax_media_remove" value="<?php _e( 'Remove Image', 'OrgMap' ); ?>" />
+          </p>
+        </td>
+      </tr>
+    <?php
+    }
+    // save edit to country image
+    public function updated_country_image ( $term_id, $tt_id ) {
+      if( isset( $_POST['country-image-id'] ) && '' !== $_POST['country-image-id'] ){
+        $image = $_POST['country-image-id'];
+        update_term_meta ( $term_id, 'country-image-id', $image );
+      } else {
+        update_term_meta ( $term_id, 'country-image-id', '' );
+      }
+    }
+
+
+    /** Country stat NPL **/
+    function add_country_npl($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-npl">Population below the National Poverty Line (%)</label>
+            <input type="text" class="post-form" id="country-npl" name="country-npl">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL field
+    function save_country_npl_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-npl'] ) && '' !== $_POST['country-npl'] ){
+            $country_npl = filter_var($_POST['country-npl'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-npl', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL field
+    function edit_country_npl_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-npl', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-npl">Population below the National Poverty Line (%)</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-npl" name="country-npl" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL Field
+    function update_country_npl( $term_id, $tt_id ){
+        if( isset( $_POST['country-npl'] ) && '' !== $_POST['country-npl'] ){
+            $country_npl = filter_var($_POST['country-npl'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-npl', $country_npl );
+        }
+    }
+
+    /** Country stat NPL Location **/
+    function add_country_npl_location($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-npl-rural">Population in rural areas below the National Poverty Line (%)</label>
+            <input type="text" class="post-form" id="country-npl-rural" name="country-npl-rural">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL location field
+    function save_country_npl_location_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-npl-rural'] ) && '' !== $_POST['country-npl-rural'] ){
+            $country_npl = filter_var($_POST['country-npl-rural'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-npl-rural', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL location field
+    function edit_country_npl_location_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-npl-rural', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-npl-rural">Population in rural areas below the National Poverty Line (%)</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-npl-rural" name="country-npl-rural" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL location Field
+    function update_country_npl_location( $term_id, $tt_id ){
+        if( isset( $_POST['country-npl-rural'] ) && '' !== $_POST['country-npl-rural'] ){
+            $country_npl = filter_var($_POST['country-npl-rural'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-npl-rural', $country_npl );
+        }
+    }
+
+
+    /** Country stat NPL Location **/
+    function add_country_poorest($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-global-poorest">Population in the global poorest 20% (%)</label>
+            <input type="text" class="post-form" id="country-global-poorest" name="country-global-poorest">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL location field
+    function save_country_poorest_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-global-poorest'] ) && '' !== $_POST['country-global-poorest'] ){
+            $country_npl = filter_var($_POST['country-global-poorest'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-global-poorest', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL location field
+    function edit_country_poorest_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-global-poorest', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-global-poorest">Population in the global poorest 20% (%)</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-global-poorest" name="country-global-poorest" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL location Field
+    function update_country_poorest( $term_id, $tt_id ){
+        if( isset( $_POST['country-global-poorest'] ) && '' !== $_POST['country-global-poorest'] ){
+            $country_npl = filter_var($_POST['country-global-poorest'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-global-poorest', $country_npl );
+        }
+    }
+
+
+    /** Country stat NPL Location **/
+    function add_country_literacy($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-literacy">Adult Literacy (%)</label>
+            <input type="text" class="post-form" id="country-literacy" name="country-literacy">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL location field
+    function save_country_literacy_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-literacy'] ) && '' !== $_POST['country-literacy'] ){
+            $country_npl = filter_var($_POST['country-literacy'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-literacy', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL location field
+    function edit_country_literacy_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-literacy', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-literacy">Adult Literacy (%)</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-literacy" name="country-literacy" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL location Field
+    function update_country_literacy( $term_id, $tt_id ){
+        if( isset( $_POST['country-literacy'] ) && '' !== $_POST['country-literacy'] ){
+            $country_npl = filter_var($_POST['country-literacy'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-literacy', $country_npl );
+        }
+    }
+
+
+
+    /** Country stat NPL Location **/
+    function add_country_mortality($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-mortality">Infant mortality rate (per 1000)</label>
+            <input type="text" class="post-form" id="country-mortality" name="country-mortality">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL location field
+    function save_country_mortality_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-mortality'] ) && '' !== $_POST['country-mortality'] ){
+            $country_npl = filter_var($_POST['country-mortality'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-mortality', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL location field
+    function edit_country_mortality_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-mortality', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-mortality">Infant mortality rate (per 1000)</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-mortality" name="country-mortality" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL location Field
+    function update_country_mortality( $term_id, $tt_id ){
+        if( isset( $_POST['country-mortality'] ) && '' !== $_POST['country-mortality'] ){
+            $country_npl = filter_var($_POST['country-mortality'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-mortality', $country_npl );
+        }
+    }
+
+    /** Country stat NPL Location **/
+    function add_country_hdi($taxonomy) {
+        $html = '<div class="form-field term-group">
+            <label for="country-hdi">Human Development Index</label>
+            <input type="text" class="post-form" id="country-hdi" name="country-hdi">
+            <p class="description">Please insert only the number, with decimal marker being a period (50.3 and not 50,3)</p>
+        </div>';
+        echo $html;
+    }
+    // Save  country stat NPL location field
+    function save_country_hdi_meta( $term_id, $tt_id ){
+        if( isset( $_POST['country-hdi'] ) && '' !== $_POST['country-hdi'] ){
+            $country_npl = filter_var($_POST['country-hdi'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            add_term_meta( $term_id, 'country-hdi', $country_npl, true );
+        }
+    }
+    // Edit country stat NPL location field
+    function edit_country_hdi_field( $term, $taxonomy ){
+        // get current sdg order code
+        $country_npl = get_term_meta( $term->term_id, 'country-hdi', true );
+        $html = '<tr class="form-field term-group-wrap">
+                <th scope="row"><label for="country-hdi">Human Development Index</label></th>
+                <td>
+                  <input type="text" class="post-form" id="country-hdi" name="country-hdi" value="' . $country_npl . '">
+                  <p class="description">Please insert only the number, with decimal marker being a period (i.e. 50.3 and not 50,3)</p>
+                </td>
+                </tr>';
+        echo $html;
+    }
+    // Update country stat NPL location Field
+    function update_country_hdi( $term_id, $tt_id ){
+        if( isset( $_POST['country-hdi'] ) && '' !== $_POST['country-hdi'] ){
+            $country_npl = filter_var($_POST['country-hdi'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            update_term_meta( $term_id, 'country-hdi', $country_npl );
+        }
     }
 
 
@@ -505,7 +868,6 @@
         )
       );
     }
-
 
     /** Custom Meta Boxes for the CPT **/
     /** Add Full Name text box **/

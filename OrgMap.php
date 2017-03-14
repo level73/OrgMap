@@ -12,6 +12,10 @@ License: GPL 3.0
 require_once(plugin_dir_path(__FILE__) . 'OrgMap.class.php');
 new OrgMapSetup();
 
+define('ICONSTRIP', true);
+define('TOOLTIPS' , false);
+add_image_size( 'country-header', 1280, 250, true );
+
 function sanitize_details( $resources ) {
   return wp_kses_post( $resources );
 }
@@ -140,19 +144,21 @@ function OrgMap_shortcode(){
     $countryList[$iso2] = array(
       'value'   => 0,
       'href'    => '/country/' . $country->slug,
-      'tooltip' => array(
-        'cssClass'  => 'orgmapTooltip',
-        'content'   => '<h3>' . $country->name . '</h3><p><strong>0</strong> ' .  __('Organizations or Initiatives')  . '</p>'
-      )
     );
     $all[$iso2] = array(
       'value'   => $country->count,
       'href'    => '/country/' . $country->slug,
-      'tooltip' => array(
-        'cssClass'  => 'orgmapTooltip',
-        'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $country->count . '</strong> ' . ($country->count !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
-      )
     );
+    if(TOOLTIPS){
+      $countryList[$iso2]['tooltip'] = array(
+          'cssClass'  => 'orgmapTooltip',
+          'content'   => '<h3>' . $country->name . '</h3><p><strong>0</strong> ' .  __('Organizations or Initiatives')  . '</p>'
+      );
+      $all[$iso2]['tooltip'] = array(
+          'cssClass'  => 'orgmapTooltip',
+          'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $country->count . '</strong> ' . ($country->count !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
+      );
+    }
   }
   // I'm going to store my query objects in here once I sorted them out
   $results = array();
@@ -185,10 +191,12 @@ function OrgMap_shortcode(){
         // add to specific SDG
         $results[$sdg_order]['areas'][$iso2]['value']++;
         $val = $results[$sdg_order]['areas'][$iso2]['value'];
-        $results[$sdg_order]['areas'][$iso2]['tooltip'] = array(
-          'cssClass'  => 'orgmapTooltip',
-          'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $val . '</strong> ' . ($val !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
-        );
+        if(TOOLTIPS){
+          $results[$sdg_order]['areas'][$iso2]['tooltip'] = array(
+            'cssClass'  => 'orgmapTooltip',
+            'content'   => '<h3>' . $country->name . '</h3><p><strong>' . $val . '</strong> ' . ($val !== 1 ? __('Organizations or Initiatives') : __('Organization or Initiative') ) . '</p>'
+          );
+        }
         /*
         // add to Full List
         $results['all']['areas'][$iso2]['value']++;
@@ -221,14 +229,14 @@ function OrgMap_shortcode(){
     foreach($sdgs as $sdg){
       $sdg_order = get_term_meta($sdg->term_id, 'sdg_order', true);
   ?>
-    <li>
+    <li <?php echo (ICONSTRIP ? 'class="icon-strip"' : ''); ?>>
       <a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-<?php echo $sdg_order; ?>" data-sdg="<?php echo $sdg_order; ?>" data-sdg-name="<?php echo $sdg->name; ?>"></a>
     </li>
   <?php
       }
   }
   ?>
-    <li><a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-all" data-sdg="all" data-sdg-name="All SDGs">ALL</a>
+    <li <?php echo (ICONSTRIP ? 'class="icon-strip"' : ''); ?>><a href="#" class="orgmap-map-control sdg-taxonomy-term sdg-list-element sdg-icon sdg-term-all" data-sdg="all" data-sdg-name="All SDGs">ALL</a>
   </ul>
 </div>
 <script src="<?php echo plugin_dir_url(__FILE__); ?>js/maps/world_countries_miller.js"></script>

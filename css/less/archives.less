@@ -7,6 +7,34 @@
   }
 }
 .country-taxonomy-archive {
+  h1 {
+    position: relative;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    &::after {
+      height: 100%;
+      width: 100%;
+      background: rgba(0,0,0,0.25);
+      color: white;
+      position: absolute;
+      top: 0; left: 0;
+      content: ' ';
+      z-index: 9990;
+    }
+    span.country-taxonomy-title {
+      height: 100%;
+      width: 100%;
+      color: white;
+      text-align: center;
+      position: absolute;
+      top: 0; left: 0;
+      padding-top: 7%;
+      font-size: 36px;
+      line-height: 36px;
+      z-index: 9999;
+
+    }
+  }
   .main-taxonomy-description, .taxonomy-stats {
     display: block; float: left;
   }
@@ -15,7 +43,7 @@
     line-height: 65px;
     float: left;
     clear: none;
-    width: 30%;
+    width: 50%;
     padding: 5px 15px;
     text-align: center;
     display: inline-block;
@@ -26,19 +54,65 @@
   .taxonomy-stats .taxonomy-counter-label {
     float: left;
     clear: none;
-    width: 70%;
+    width: 50%;
     padding: 10px 15px;
     display: inline-block;
   }
+  .taxonomy-stats .taxonomy-graph {
+    display: block;
+    clear: both;
+    .taxonomy-data {
+      width: 33.3333%; float: left; clear: none; padding: 20px;
+      h3 { font-size: 12px; text-transform: uppercase; text-align: center; margin: 25px 0px; }
+      .taxonomy-data-value {
+        font-size: 36px;
+        display: block; clear: both;
+        line-height: 110px; text-align: center;
+        width: 120px; height: 120px;
+        border-radius: 50%;
+        background: #ddd;
+        margin: 0px auto;
+      }
+      .chart-text {
+        font: 12px/1em Arial, sans-serif;
+        fill: #000;
+        -moz-transform: translateY(0.25em);
+        -ms-transform: translateY(0.25em);
+        -webkit-transform: translateY(0.25em);
+        transform: translateY(0.25em);
+      }
+
+      .chart-number {
+        font-size: 0.45em;
+        line-height: 1;
+        text-anchor: middle;
+        -moz-transform: translateY(-0.25em);
+        -ms-transform: translateY(-0.25em);
+        -webkit-transform: translateY(-0.25em);
+        transform: translateY(-0.25em);
+      }
+
+      .chart-label {
+        font-size: 0.2em;
+        text-transform: uppercase;
+        text-anchor: middle;
+        -moz-transform: translateY(0.7em);
+        -ms-transform: translateY(0.7em);
+        -webkit-transform: translateY(0.7em);
+        transform: translateY(0.7em);
+      }
+    }
+  }
 }
+
 
 @media screen and (min-width: 768px) {
   .country-taxonomy-archive {
     .main-taxonomy-description {
-      display: block; float: left; width: 65%; padding-right: 25px;
+      display: block; float: left; width: 50%; padding-right: 25px;
     }
     .taxonomy-stats {
-      display: block; float: left; width: 35%;
+      display: block; float: left; width: 50%;
     }
   }
   .country-taxonomy-entry {
