@@ -23,20 +23,25 @@ $counter = new WP_Query(
   	)
   )
 );
-$counter = $counter->found_posts;
-$image_id = get_term_meta ( $term->term_id, 'country-image-id', true );
-$country_npl = get_term_meta ( $term->term_id, 'country-npl', true );
-$country_npl_rural = get_term_meta ( $term->term_id, 'country-npl-rural', true );
-$country_global_poorest = get_term_meta ( $term->term_id, 'country-global-poorest', true );
-$country_literacy = get_term_meta ( $term->term_id, 'country-literacy', true );
-$country_mortality = get_term_meta ( $term->term_id, 'country-mortality', true );
-$country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
+$counter                  = $counter->found_posts;
+$image_id                 = get_term_meta ( $term->term_id, 'country-image-id', true );
+$country_npl              = get_term_meta ( $term->term_id, 'country-npl', true );
+$country_npl_rural        = get_term_meta ( $term->term_id, 'country-npl-rural', true );
+$country_global_poorest   = get_term_meta ( $term->term_id, 'country-global-poorest', true );
+$country_literacy         = get_term_meta ( $term->term_id, 'country-literacy', true );
+$country_mortality        = get_term_meta ( $term->term_id, 'country-mortality', true );
+$country_hdi              = get_term_meta ( $term->term_id, 'country-hdi', true );
+$resources                = get_term_meta($term->term_id, 'resources', true);
 ?>
 <header class="country-taxonomy-archive country-<?php echo $term->slug; ?> cf">
 
   <h1>
+    <?php if(!empty($image_id)): ?>
     <?php echo wp_get_attachment_image ( $image_id, 'country-header', false, array('class' => 'country-header') ); ?>
     <span class="country-taxonomy-title"><?php echo $term->name; ?></span>
+    <?php else: ?>
+    <?php echo $term->name; ?>
+    <?php endif; ?>
   </h1>
 
   <div class="main-taxonomy-description">
@@ -47,6 +52,7 @@ $country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
   <div class="taxonomy-stats">
 
     <div class="taxonomy-graph cf">
+      <?php if(!empty($country_npl)): ?>
       <div class="taxonomy-data taxonomy-data-2">
         <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
           <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
@@ -60,8 +66,9 @@ $country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
         </svg>
         <h3>Population living below the national poverty line</h3>
       </div>
+      <?php endif; ?>
 
-
+      <?php if(!empty($country_npl_rural)): ?>
       <div class="taxonomy-data taxonomy-data-2">
         <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
           <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
@@ -78,7 +85,9 @@ $country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
         </svg>
         <h3>Rural Population living below the national poverty line</h3>
       </div>
+      <?php endif; ?>
 
+      <?php if(!empty($country_global_poorest)): ?>
       <div class="taxonomy-data taxonomy-data-2">
         <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
           <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
@@ -92,25 +101,34 @@ $country_hdi = get_term_meta ( $term->term_id, 'country-hdi', true );
         </svg>
         <h3>National % of Global Poorest 20%</h3>
       </div>
+    <?php endif; ?>
     </div>
     <div class="taxonomy-graph cf">
+      <?php if(!empty($country_literacy)): ?>
       <div class="taxonomy-data taxonomy-data-3">
         <span class="taxonomy-data-value"><?php echo $country_literacy; ?>%</span>
         <h3>Adult Literacy Percentage</h3>
       </div>
+      <?php endif; ?>
+      <?php if(!empty($country_mortality)): ?>
       <div class="taxonomy-data taxonomy-data-3">
         <span class="taxonomy-data-value"><?php echo $country_mortality; ?></span>
         <h3>Infant Mortality Rate (per 1000)</h3>
       </div>
+      <?php endif; ?>
+      <?php if(!empty($country_hdi)): ?>
       <div class="taxonomy-data taxonomy-data-1">
         <span class="taxonomy-data-value"><?php echo $country_hdi; ?></span>
         <h3>Human Development Index</h3>
       </div>
+      <?php endif; ?>
     </div>
+    <?php if(!empty($resources)): ?>
     <div class="taxonomy-resources">
       <h3>Resources</h3>
-      <?php echo get_term_meta($term->term_id, 'resources', true); ?>
+      <?php echo $resources; ?>
     </div>
+    <?php endif; ?>
   </div>
 </header>
 <nav class="sdg-tabs">
