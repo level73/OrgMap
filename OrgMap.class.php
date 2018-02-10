@@ -330,7 +330,7 @@
       add_action( 'countries_edit_form_fields', array( $this, 'edit_country_hdi_field'), 10, 2 );
       add_action( 'edited_countries', array( $this, 'update_country_hdi'), 10, 2 );
 
-      add_action( 'admin_footer', array ( $this, 'image_script' ) );
+      add_action( 'admin_footer', array ( $this, 'image_script', 100 ) );
 
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_full_name'), 10, 3 );
       add_action( 'save_post', array( $this, 'OrgMap_organization_full_name_box_save'), 10, 3 );
@@ -518,8 +518,9 @@
       </div>
      <?php
     }
+
     // image js script to manage WP Image editor
-    public function image_script(){?>
+    public function image_script(){ ?>
        <script>
          jQuery(document).ready( function($) {
            function ct_media_upload(button_class) {
@@ -543,13 +544,14 @@
              return false;
            });
          }
+
          ct_media_upload('.ct_tax_media_button.button');
-         $('body').on('click','.ct_tax_media_remove',function(){
-           $('#country-image-id').val('');
-           $('#country-image-wrapper').html('<img class="custom_media_image" src="" style="margin:0;padding:0;max-height:100px;float:none;" />');
+         jQuery('body').on('click','.ct_tax_media_remove',function(){
+           jQuery('#country-image-id').val('');
+           jQuery('#country-image-wrapper').html('<img class="custom_media_image" src="" style="margin:0;padding:0;max-height:100px;float:none;" />');
          });
          // Thanks: http://stackoverflow.com/questions/15281995/wordpress-create-category-ajax-response
-         $(document).ajaxComplete(function(event, xhr, settings) {
+         jQuery(document).ajaxComplete(function(event, xhr, settings) {
            var queryStringArr = settings.data.split('&');
            if( $.inArray('action=add-tag', queryStringArr) !== -1 ){
              var xml = xhr.responseXML;
