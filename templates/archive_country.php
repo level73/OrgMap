@@ -11,19 +11,9 @@ get_header();
 <?php
 // get Taxonomy Data
 $term = get_term_by( 'slug', get_query_var('term'), get_query_var('taxonomy') );
-$counter = new WP_Query(
-  array(
-    'post_type' => 'organization',
-    'tax_query' => array(
-  		array(
-  			'taxonomy' => 'countries',
-  			'field'    => 'slug',
-  			'terms'    => $term->slug
-  		),
-  	)
-  )
-);
-$counter                  = $counter->found_posts;
+
+
+// $counter                  = $counter->found_posts;
 $image_id                 = get_term_meta ( $term->term_id, 'country-image-id', true );
 $country_npl              = get_term_meta ( $term->term_id, 'country-npl', true );
 $country_npl_rural        = get_term_meta ( $term->term_id, 'country-npl-rural', true );
@@ -131,18 +121,55 @@ $resources                = get_term_meta($term->term_id, 'resources', true);
     <?php endif; ?>
   </div>
 </header>
+
+
+
+<?php
+
+wp_reset_query();
+wp_reset_postdata();
+
+
+$orgs = new WP_Query(
+  array(
+    'post_type' => 'organization',
+    'tax_query' => array(
+  		array(
+  			'taxonomy' => 'countries',
+  			'field'    => 'slug',
+  			'terms'    => $term->slug
+  		),
+  	)
+  )
+);
+
+?>
+
 <nav class="sdg-tabs">
   <h3>View Initiatives and Organizations by SDG</h3>
-  <div class="counter">
-    <span class="taxonomy-counter-number"><?php echo $counter; ?></span>
-    <span class="taxonomy-counter-label"><?php echo ($counter != 1  ? __('Organizations or initiatives in this country') : __('Organization or initiative in this country')); ?></span>
+
+  <div class="taxonomy-counter">
+    <span class="taxonomy-counter-number"><?php echo $orgs->post_count; ?></span>
+    <span class="taxonomy-counter-label"><?php echo ($orgs->post_count > 1  ? __('Organizations or initiatives in this country') : __('Organization or initiative in this country')); ?></span>
   </div>
-  <?php  OrgMap_sdg_terms(); ?>
+  <?php
+  // OrgMap_sdg_terms();
+  $terms = get_the_terms($post->id, 'sdgs');
+  if(!empty($terms) && !is_wp_error($terms)){
+    echo '<ul class="sdg-term-list">';
+    foreach($terms as $term){
+      $sdg_order = get_term_meta($term->term_id, 'sdg_order', true);
+      echo '<li class="sdg-term-' . $sdg_order .  ' sdg-icon-list"><a class="sdg-taxonomy-term sdg-icon sdg-term-' . $sdg_order . '" href="/sdg/' . $term->slug . '" title="' . $term->name . '" alt="' . $term->name . '" >' . $term->name . '</a></li>';
+    }
+    echo '</ul>';
+  }
+
+  ?>
 </nav>
-<?php while ( have_posts() ) : the_post(); ?>
-<article class="country-taxonomy-entry sdg-hidden cf <?php OrgMap_org_sdg_classes(); ?>">
+<?php while ( $orgs->have_posts() ) : $orgs->the_post(); ?>
+<article class="country-taxonomy-entry  cf <?php OrgMap_org_sdg_classes(); ?>">
   <header>
-    <h2><a href="<?php echo get_permalink(); ?>"><?php the_title(); ?></a></h2>
+    <h2><a href="<?php echo get_permalink(); ?>"><?php echo get_the_title(); ?></a></h2>
     <h3><?php echo get_post_meta( get_the_ID(), 'full_name', true); ?></h3>
     <span class="orgmap_countries"><?php the_terms(get_the_ID(), 'countries'); ?></span>
   </header>
@@ -152,5 +179,9 @@ $resources                = get_term_meta($term->term_id, 'resources', true);
 </article>
 <?php
 endwhile;
+
+wp_reset_query();
+wp_reset_postdata();
+
 get_footer();
 ?>

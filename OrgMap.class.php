@@ -332,10 +332,24 @@
 
       add_action( 'admin_footer', array ( $this, 'image_script', 100 ) );
 
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_action_impact'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_action_impact_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_action_duration'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_action_duration_box_save'), 10, 3 );
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_full_name'), 10, 3 );
       add_action( 'save_post', array( $this, 'OrgMap_organization_full_name_box_save'), 10, 3 );
       add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_url'), 10, 3 );
       add_action( 'save_post', array( $this, 'OrgMap_organization_url_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_media_handle'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_media_handle_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_type'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_type_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_location'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_location_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_geoscope'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_geoscope_box_save'), 10, 3 );
+      add_action( 'add_meta_boxes', array( $this, 'OrgMap_organization_action_cities'), 10, 3 );
+      add_action( 'save_post', array( $this, 'OrgMap_organization_action_cities_box_save'), 10, 3 );
     }
 
     function activate() {
@@ -835,7 +849,7 @@
     }
 
 
-
+    /** Create Organization CPT **/
     function create_organization_cpt(){
       $labels = array(
           'name' => 'Organizations',
@@ -872,6 +886,70 @@
     }
 
     /** Custom Meta Boxes for the CPT **/
+    /** Add Impact text box **/
+    function OrgMap_organization_action_impact() {
+        add_meta_box(
+            'organization_action_impact_box',
+            __( 'Impact of the Action', 'orgmap' ),
+            array($this, 'OrgMap_organization_action_impact_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_action_impact_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_action_impact_box_content_nonce' );
+      echo '<label for="action_impact"></label>';
+      echo '<textarea id="action_impact" name="action_impact" style="width: 100%" placeholder="A description of the impact of the action...">' . (get_post_meta($post->ID, 'action_impact',  true) ? : '') . '</textarea>';
+    }
+    function OrgMap_organization_action_impact_box_save( $post_id ) {
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_action_impact_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_action_impact_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_type'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['full_name'];
+      update_post_meta( $post_id, 'full_name', $data );
+    }
+
+    /** Add Action Duration text box **/
+    function OrgMap_organization_action_duration() {
+        add_meta_box(
+            'organization_action_duration_box',
+            __( 'Action Duration', 'orgmap' ),
+            array($this, 'OrgMap_organization_action_duration_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_action_duration_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_action_duration_box_content_nonce' );
+      echo '<label for="action_duration"></label>';
+      echo '<input type="text" id="action_duration" name="action_duration" style="width: 100%" placeholder="Action Duration..." value="'. (get_post_meta($post->ID, 'action_duration',  true) ? : '') . '"/>';
+    }
+    function OrgMap_organization_action_duration_box_save( $post_id ) {
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_action_duration_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_action_duration_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_type'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['action_duration'];
+      update_post_meta( $post_id, 'action_duration', $data );
+    }
+
     /** Add Full Name text box **/
     function OrgMap_organization_full_name() {
         add_meta_box(
@@ -938,7 +1016,169 @@
       update_post_meta( $post_id, 'organization_url', $data );
     }
 
+    /** Add Organization Media Handle **/
+    function OrgMap_organization_media_handle() {
+        add_meta_box(
+            'organization_media_handle_box',
+            __( 'Organization Media Handle', 'orgmap' ),
+            array($this, 'OrgMap_organization_media_handle_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_media_handle_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_media_handle_box_content_nonce' );
+      echo '<label for="organization_media_handle"></label>';
+      echo '<input type="text" id="organization_media_handle" name="organization_media_handle" style="width: 100%" placeholder="Organization Twitter handle..." value="'. (get_post_meta($post->ID, 'organization_media_handle',  true) ? : '') . '"/>';
+      echo "<span><em>Please include the @ symbol. Split multiple handles with a comma.</em></span>";
+    }
+    function OrgMap_organization_media_handle_box_save( $post_id ) {
 
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_media_handle_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_media_handle_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_type'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['organization_media_handle'];
+      update_post_meta( $post_id, 'organization_media_handle', $data );
+    }
 
+    /** Add Organization Type **/
+    function OrgMap_organization_type() {
+        add_meta_box(
+            'organization_type_box',
+            __( 'Organization Type', 'orgmap' ),
+            array($this, 'OrgMap_organization_type_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_type_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_type_box_content_nonce' );
+      echo '<label for="organization_type"></label>';
+      echo '<input type="text" id="organization_type" name="organization_type" style="width: 100%" placeholder="Organization Type..." value="'. (get_post_meta($post->ID, 'organization_type',  true) ? : '') . '"/>';
+    }
+    function OrgMap_organization_type_box_save( $post_id ) {
 
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_type_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_type_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_type'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['organization_type'];
+      update_post_meta( $post_id, 'organization_type', $data );
+    }
+
+    /** Add Organization Location **/
+    function OrgMap_organization_location() {
+        add_meta_box(
+            'organization_location_box',
+            __( 'Organization Location (country)', 'orgmap' ),
+            array($this, 'OrgMap_organization_location_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_location_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_location_box_content_nonce' );
+      echo '<label for="organization_location"></label>';
+      echo '<input type="text" id="organization_location" name="organization_location" style="width: 100%" placeholder="Organization Location (country)..." value="'. (get_post_meta($post->ID, 'organization_location',  true) ? : '') . '"/>';
+    }
+    function OrgMap_organization_location_box_save( $post_id ) {
+
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_location_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_location_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_location'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['organization_location'];
+      update_post_meta( $post_id, 'organization_location', $data );
+    }
+
+    /** Add Organization Geographic Scope **/
+    function OrgMap_organization_geoscope() {
+        add_meta_box(
+            'organization_geoscope_box',
+            __( 'Organization Geographic Scope', 'orgmap' ),
+            array($this, 'OrgMap_organization_geoscope_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_geoscope_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_geoscope_box_content_nonce' );
+      echo '<label for="organization_geoscope"></label>';
+      echo '<input type="text" id="organization_geoscope" name="organization_geoscope" style="width: 100%" placeholder="Organization Geographic Scope..." value="'. (get_post_meta($post->ID, 'organization_geoscope',  true) ? : '') . '"/>';
+    }
+    function OrgMap_organization_geoscope_box_save( $post_id ) {
+
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_geoscope_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_geoscope_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_geoscope'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['organization_geoscope'];
+      update_post_meta( $post_id, 'organization_geoscope', $data );
+    }
+
+    /** Add Organization Action Cities **/
+    function OrgMap_organization_action_cities() {
+        add_meta_box(
+            'organization_action_cities_box',
+            __( 'Location of Action (cities)', 'orgmap' ),
+            array($this, 'OrgMap_organization_action_cities_box_content'),
+            'organization',
+            'normal',
+            'high'
+        );
+    }
+    function OrgMap_organization_action_cities_box_content( $post ) {
+      wp_nonce_field( plugin_basename( __FILE__ ), 'organization_action_cities_box_content_nonce' );
+      echo '<label for="organization_action_cities"></label>';
+      echo '<input type="text" id="organization_action_cities" name="organization_action_cities" style="width: 100%" placeholder="Location of Action (cities)..." value="'. (get_post_meta($post->ID, 'organization_action_cities',  true) ? : '') . '"/>';
+    }
+    function OrgMap_organization_action_cities_box_save( $post_id ) {
+
+      if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+      return;
+      if ( !isset($_POST['organization_action_cities_box_content_nonce']) || !wp_verify_nonce( $_POST['organization_action_cities_box_content_nonce'], plugin_basename( __FILE__ ) ) )
+      return;
+      if ( 'page' == $_POST['post_action_cities'] ) {
+        if ( !current_user_can( 'edit_page', $post_id ) )
+        return;
+      } else {
+        if ( !current_user_can( 'edit_post', $post_id ) )
+        return;
+      }
+      $data = $_POST['organization_action_cities'];
+      update_post_meta( $post_id, 'organization_action_cities', $data );
+    }
   }
